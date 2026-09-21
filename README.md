@@ -82,6 +82,28 @@ Then open the URL it prints (usually <http://localhost:4173>).
 If you prefer to serve the `dist/` folder with another static server, that works
 too (for example `npx serve dist`), because the build uses relative asset paths.
 
+## Deployment (GitHub Pages)
+
+This project deploys automatically to **GitHub Pages** via GitHub Actions
+(`.github/workflows/deploy.yml`). Every push to `main` builds the app and
+publishes `dist/` — no build output is committed to the repository.
+
+- **Live site:** <https://kh288.github.io/GreenCartApp/>
+
+### One-time setup
+
+In the repository, go to **Settings → Pages** and set **Build and deployment →
+Source** to **GitHub Actions**. After that, each push to `main` triggers a
+deploy (you can also run it manually from the **Actions** tab).
+
+### Why it works from a subpath
+
+The site is served from `/GreenCartApp/`, not the domain root. `vite.config.ts`
+sets `base: "./"`, so all built asset URLs are **relative**. That means the same
+build works whether it is served from a subpath, a custom domain, or a static
+file server. A `public/.nojekyll` file is also included so GitHub Pages serves
+every asset as-is.
+
 ## Project structure
 
 ```
