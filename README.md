@@ -17,7 +17,7 @@ shopping cart.
 | Build tool | Vite 8                                       |
 | Linting    | Oxlint                                       |
 | Formatting | Prettier                                     |
-| Styling    | Bootstrap 5 (applied in a later step)        |
+| Styling    | None yet.                                    |
 | Data       | CSV file (`src/data/GreenCart_Products.csv`) |
 
 ## Prerequisites
