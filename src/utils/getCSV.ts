@@ -1,3 +1,10 @@
+/**
+ * The product CSV is bundled as a string at build time via Vite's `?raw`
+ * import. This avoids runtime path/MIME/CORS issues entirely and works in
+ * dev, preview, a static server (Live Server), and even from `file://`.
+ */
+import csvText from "../data/GreenCart_Products.csv?raw";
+
 export interface Product {
   id: string;
   name: string;
@@ -20,9 +27,6 @@ export interface Product {
   imageUrl: string;
   relatedProductIds: string[];
 }
-
-/** Path is relative to the site root; the file lives in `public/`. */
-const CSV_PATH = "/GreenCart_Products.csv";
 
 const PRODUCT_IMAGES = import.meta.glob("../assets/productImages/*", {
   eager: true,
@@ -136,17 +140,11 @@ function rowToProduct(record: Record<string, string>): Product {
 }
 
 /**
- * Fetches and parses the GreenCart product CSV.
+ * Parses the bundled GreenCart product CSV into typed Products.
  * @returns A promise resolving to an array of typed Products.
  */
 export async function getProducts(): Promise<Product[]> {
-  const response = await fetch(CSV_PATH);
-  if (!response.ok) {
-    throw new Error(`Failed to load products CSV (${response.status})`);
-  }
-
-  const text = await response.text();
-  const [headerRow, ...dataRows] = parseCsv(text);
+  const [headerRow, ...dataRows] = parseCsv(csvText);
   if (!headerRow) return [];
 
   return dataRows.map((cells) => {
