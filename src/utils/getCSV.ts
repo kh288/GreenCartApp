@@ -24,10 +24,6 @@ export interface Product {
 /** Path is relative to the site root; the file lives in `public/`. */
 const CSV_PATH = "/GreenCart_Products.csv";
 
-/**
- * Bundles every product image at build time and maps its bare filename
- * (e.g. "P001-bamboo-toothbrush.png") to its resolved asset URL.
- */
 const PRODUCT_IMAGES = import.meta.glob("../assets/productImages/*", {
   eager: true,
   query: "?url",

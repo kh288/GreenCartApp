@@ -1,71 +1,278 @@
 import { useEffect, useMemo, useState } from "react";
 import { getProducts, type Product } from "./utils/getCSV";
 
-const BADGE_COLORS: Record<string, string> = {
-  "Plastic-Free": "success",
-  "Vegan": "success",
-  "Locally Made": "primary",
-  "Compostable": "success",
-  "Carbon Neutral": "info",
-  "Recycled": "info",
-  "Organic": "success",
-  "Fair Trade": "warning",
-};
+type CartLine = { product: Product; quantity: number };
 
 function StarRating({ rating, reviewCount }: { rating: number; reviewCount: number }) {
   const fullStars = Math.floor(rating);
   return (
-    <div className="d-flex align-items-center gap-1">
-      <span className="text-warning" aria-hidden="true">
+    <p>
+      <span aria-hidden="true">
         {"★".repeat(fullStars)}
         {"☆".repeat(5 - fullStars)}
-      </span>
-      <small className="text-muted">
+      </span>{" "}
+      <small>
         {rating.toFixed(1)} ({reviewCount})
       </small>
-    </div>
+    </p>
   );
 }
 
-function ProductCard({ product }: { product: Product }) {
+function BadgeList({ badges }: { badges: string[] }) {
+  return (
+    <ul>
+      {badges.map((badge) => (
+        <li key={badge}>{badge}</li>
+      ))}
+    </ul>
+  );
+}
+
+function ProductCard({
+  product,
+  onAdd,
+  onOpen,
+}: {
+  product: Product;
+  onAdd: (product: Product) => void;
+  onOpen: (product: Product) => void;
+}) {
   const [imgFailed, setImgFailed] = useState(false);
+  const inStock = product.inventory > 0;
 
   return (
-    <div className="card h-100 shadow-sm border-0">
-      <div className="ratio ratio-1x1 bg-body-secondary overflow-hidden">
+    <article>
+      <button
+        type="button"
+        onClick={() => onOpen(product)}
+        aria-label={`View details for ${product.name}`}
+      >
         {imgFailed ? (
-          <div className="d-flex align-items-center justify-content-center text-muted">
-            <span className="fs-1">🌱</span>
-          </div>
+          <span aria-hidden="true">🌱</span>
         ) : (
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="object-fit-cover"
+            width={240}
+            height={240}
             onError={() => setImgFailed(true)}
           />
         )}
-      </div>
-      <div className="card-body d-flex flex-column">
-        <div className="d-flex flex-wrap gap-1 mb-2">
-          {product.ecoBadges.map((badge) => (
-            <span key={badge} className={`badge text-bg-${BADGE_COLORS[badge] ?? "secondary"} `}>
-              {badge}
-            </span>
-          ))}
-        </div>
-        <small className="text-uppercase text-muted fw-semibold">{product.brand}</small>
-        <h6 className="card-title mb-1">{product.name}</h6>
-        <StarRating rating={product.rating} reviewCount={product.reviewCount} />
-        <p className="card-text text-muted small mt-2 flex-grow-1">{product.description}</p>
-        <div className="d-flex justify-content-between align-items-center mt-3">
-          <span className="fs-5 fw-bold text-success">${product.price.toFixed(2)}</span>
-          <small className="text-muted">{product.size}</small>
-        </div>
-        <button type="button" className="btn btn-success w-100 mt-3">
-          Add to Cart
+      </button>
+      <BadgeList badges={product.ecoBadges} />
+      <p>
+        <small>{product.brand}</small>
+      </p>
+      <h3>{product.name}</h3>
+      <StarRating rating={product.rating} reviewCount={product.reviewCount} />
+      <p>{product.description}</p>
+      <p>
+        <strong>${product.price.toFixed(2)}</strong> · <small>{product.size}</small>
+      </p>
+      <button type="button" disabled={!inStock} onClick={() => onAdd(product)}>
+        {inStock ? "Add to Cart" : "Out of Stock"}
+      </button>
+    </article>
+  );
+}
+
+function ProductDetail({
+  product,
+  related,
+  onClose,
+  onAdd,
+}: {
+  product: Product;
+  related: Product[];
+  onClose: () => void;
+  onAdd: (product: Product, quantity: number) => void;
+}) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const inStock = product.inventory > 0;
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label={product.name}>
+      <header>
+        <h2>{product.name}</h2>
+        <button type="button" aria-label="Close" onClick={onClose}>
+          ✕
         </button>
+      </header>
+
+      <div>
+        <section>
+          {imgFailed ? (
+            <span aria-hidden="true">🌱</span>
+          ) : (
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              width={320}
+              height={320}
+              onError={() => setImgFailed(true)}
+            />
+          )}
+        </section>
+
+        <section>
+          <p>
+            <small>{product.brand}</small>
+          </p>
+          <BadgeList badges={product.ecoBadges} />
+          <StarRating rating={product.rating} reviewCount={product.reviewCount} />
+          <p>
+            <strong>${product.price.toFixed(2)}</strong>
+          </p>
+          <p>{inStock ? `In stock (${product.inventory} available)` : "Out of stock"}</p>
+
+          <h3>Description</h3>
+          <p>{product.description}</p>
+
+          <h3>Ingredients / Sourcing</h3>
+          <p>{product.ingredients || "Not specified."}</p>
+
+          <h3>Reviews</h3>
+          <p>
+            {product.reviewCount} reviews · average {product.rating.toFixed(1)} / 5
+          </p>
+          {/* NOTE: individual review text is not in the current dataset. */}
+
+          <div>
+            <button
+              type="button"
+              aria-label="Decrease quantity"
+              disabled={!inStock || quantity <= 1}
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            >
+              −
+            </button>
+            <output aria-live="polite">{quantity}</output>
+            <button
+              type="button"
+              aria-label="Increase quantity"
+              disabled={!inStock || quantity >= product.inventory}
+              onClick={() => setQuantity((q) => Math.min(product.inventory, q + 1))}
+            >
+              +
+            </button>
+            <button type="button" disabled={!inStock} onClick={() => onAdd(product, quantity)}>
+              {inStock ? "Add to Cart" : "Notify Me"}
+            </button>
+          </div>
+        </section>
       </div>
+
+      {related.length > 0 && (
+        <section>
+          <h3>You Might Also Like</h3>
+          <ul>
+            {related.map((item) => (
+              <li key={item.id}>
+                {item.imageUrl && (
+                  <img src={item.imageUrl} alt={item.name} width={120} height={120} />
+                )}
+                <p>{item.name}</p>
+                <p>
+                  <strong>${item.price.toFixed(2)}</strong>
+                </p>
+                <button type="button" disabled={item.inventory <= 0} onClick={() => onAdd(item, 1)}>
+                  Add to Cart
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Task 3: Cart page                                                   */
+/* ------------------------------------------------------------------ */
+
+function CartPage({
+  lines,
+  subtotal,
+  onSetQuantity,
+  onRemove,
+  onClose,
+  onCheckout,
+}: {
+  lines: CartLine[];
+  subtotal: number;
+  onSetQuantity: (id: string, quantity: number) => void;
+  onRemove: (id: string) => void;
+  onClose: () => void;
+  onCheckout: () => void;
+}) {
+  return (
+    <div role="dialog" aria-modal="true" aria-label="Your Cart">
+      <header>
+        <h2>Your Cart</h2>
+        <button type="button" aria-label="Close" onClick={onClose}>
+          ✕
+        </button>
+      </header>
+
+      {lines.length === 0 ? (
+        <p>Your cart is empty.</p>
+      ) : (
+        <ul>
+          {lines.map(({ product, quantity }) => (
+            <li key={product.id}>
+              {product.imageUrl && (
+                <img src={product.imageUrl} alt={product.name} width={64} height={64} />
+              )}
+              <div>
+                <p>{product.name}</p>
+                <small>${product.price.toFixed(2)} each</small>
+              </div>
+              <div>
+                <button
+                  type="button"
+                  aria-label={`Decrease ${product.name} quantity`}
+                  onClick={() => onSetQuantity(product.id, quantity - 1)}
+                >
+                  −
+                </button>
+                <output>{quantity}</output>
+                <button
+                  type="button"
+                  aria-label={`Increase ${product.name} quantity`}
+                  onClick={() => onSetQuantity(product.id, quantity + 1)}
+                >
+                  +
+                </button>
+              </div>
+              <span>${(product.price * quantity).toFixed(2)}</span>
+              <button
+                type="button"
+                aria-label={`Remove ${product.name}`}
+                onClick={() => onRemove(product.id)}
+              >
+                ✕
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {lines.length > 0 && (
+        <footer>
+          <p>
+            Subtotal: <strong>${subtotal.toFixed(2)}</strong>
+          </p>
+          <button type="button" onClick={onClose}>
+            Continue Shopping
+          </button>
+          <button type="button" onClick={onCheckout}>
+            Checkout
+          </button>
+          <small>Checkout &amp; payments are planned for a future release.</small>
+        </footer>
+      )}
     </div>
   );
 }
@@ -73,7 +280,19 @@ function ProductCard({ product }: { product: Product }) {
 export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+
+  // --- Task 1: search & filter state ---
+  const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [activeBadge, setActiveBadge] = useState("All");
+  const [maxPrice, setMaxPrice] = useState(20);
+  const [minRating, setMinRating] = useState(0);
+
+  // --- Task 2/3: selection + cart state ---
+  const [selected, setSelected] = useState<Product | null>(null);
+  const [cart, setCart] = useState<CartLine[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -82,6 +301,8 @@ export default function App() {
         if (cancelled) return;
         setProducts(loaded);
         setStatus("ready");
+        const highest = Math.ceil(Math.max(...loaded.map((p) => p.price), 0));
+        setMaxPrice(highest);
       })
       .catch(() => {
         if (!cancelled) setStatus("error");
@@ -91,152 +312,240 @@ export default function App() {
     };
   }, []);
 
+  // Auto-dismiss the "added to cart" toast.
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 2500);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
   const categories = useMemo(
     () => ["All", ...Array.from(new Set(products.map((p) => p.category)))],
     [products],
   );
 
-  const visibleProducts =
-    activeCategory === "All" ? products : products.filter((p) => p.category === activeCategory);
+  const badges = useMemo(
+    () => ["All", ...Array.from(new Set(products.flatMap((p) => p.ecoBadges)))],
+    [products],
+  );
+
+  const priceCeiling = useMemo(
+    () => Math.ceil(Math.max(...products.map((p) => p.price), 20)),
+    [products],
+  );
+
+  // Task 1: apply keyword + category + badge + price + rating filters (FR1).
+  const visibleProducts = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return products.filter((p) => {
+      const matchesTerm =
+        term === "" ||
+        p.name.toLowerCase().includes(term) ||
+        p.description.toLowerCase().includes(term) ||
+        p.brand.toLowerCase().includes(term);
+      const matchesCategory = activeCategory === "All" || p.category === activeCategory;
+      const matchesBadge = activeBadge === "All" || p.ecoBadges.includes(activeBadge);
+      const matchesPrice = p.price <= maxPrice;
+      const matchesRating = p.rating >= minRating;
+      return matchesTerm && matchesCategory && matchesBadge && matchesPrice && matchesRating;
+    });
+  }, [products, search, activeCategory, activeBadge, maxPrice, minRating]);
+
+  const cartCount = cart.reduce((sum, line) => sum + line.quantity, 0);
+  const subtotal = cart.reduce((sum, line) => sum + line.product.price * line.quantity, 0);
+
+  // Task 3: add to cart (FR4), merging quantities for existing lines.
+  function addToCart(product: Product, quantity = 1) {
+    setCart((prev) => {
+      const existing = prev.find((line) => line.product.id === product.id);
+      if (existing) {
+        return prev.map((line) =>
+          line.product.id === product.id ? { ...line, quantity: line.quantity + quantity } : line,
+        );
+      }
+      return [...prev, { product, quantity }];
+    });
+    setToast(`Added ${product.name} to your cart`);
+  }
+
+  // Task 3: set quantity; removing when it would drop to 0 (FR4).
+  function setQuantity(id: string, quantity: number) {
+    if (quantity <= 0) {
+      removeFromCart(id);
+      return;
+    }
+    setCart((prev) => prev.map((line) => (line.product.id === id ? { ...line, quantity } : line)));
+  }
+
+  function removeFromCart(id: string) {
+    setCart((prev) => prev.filter((line) => line.product.id !== id));
+  }
+
+  function resetFilters() {
+    setSearch("");
+    setActiveCategory("All");
+    setActiveBadge("All");
+    setMaxPrice(priceCeiling);
+    setMinRating(0);
+  }
+
+  const related = selected
+    ? selected.relatedProductIds
+        .map((id) => products.find((p) => p.id === id))
+        .filter((p): p is Product => Boolean(p))
+        .slice(0, 3)
+    : [];
 
   return (
     <>
-      <nav className="navbar navbar-expand-lg bg-success-subtle shadow-sm">
-        <div className="container">
-          <a className="navbar-brand fw-bold text-success" href="#">
-            🌿 GreenCart
-          </a>
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#mainNav"
-            aria-controls="mainNav"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon" />
-          </button>
-          <div className="collapse navbar-collapse" id="mainNav">
-            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-              <li className="nav-item">
-                <a className="nav-link active" href="#">
-                  Shop
-                </a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">
-                  Categories
-                </a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">
-                  Our Mission
-                </a>
-              </li>
-            </ul>
-            <div className="d-flex gap-2">
-              <button className="btn btn-outline-success" type="button">
-                Sign In
-              </button>
-              <button className="btn btn-success position-relative" type="button">
-                🛒 Cart
-                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-danger">
-                  3<span className="visually-hidden">items in cart</span>
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
+      <nav aria-label="Main">
+        <span>🌿 GreenCart</span>
+        <form role="search" onSubmit={(e) => e.preventDefault()}>
+          <label htmlFor="search-input">Search products</label>
+          <input
+            id="search-input"
+            type="search"
+            placeholder="Search products…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </form>
+        <button type="button" onClick={() => setCartOpen(true)}>
+          🛒 Cart {cartCount > 0 && <> ({cartCount})</>}
+        </button>
       </nav>
 
-      <header className="bg-success text-white py-5">
-        <div className="container text-center py-4">
-          <h1 className="display-4 fw-bold">Everyday Essentials, Zero Waste</h1>
-          <p className="lead mb-4">
-            Sustainable, plastic-free products for your home and body — delivered with
-            carbon-neutral shipping.
-          </p>
-          <a href="#products" className="btn btn-light btn-lg fw-semibold">
-            Shop Now
-          </a>
-        </div>
+      <header>
+        <h1>Everyday Essentials, Zero Waste</h1>
+        <p>Search sustainable, plastic-free products and build your cart in seconds.</p>
       </header>
 
-      <main id="products" className="container py-5">
-        <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
-          <h2 className="h3 mb-0">Shop Our Products</h2>
-          <div className="btn-group flex-wrap" role="group" aria-label="Category filter">
-            {categories.map((category) => (
-              <button
-                key={category}
-                type="button"
-                className={`btn ${
-                  activeCategory === category ? "btn-success" : "btn-outline-success"
-                }`}
-                onClick={() => setActiveCategory(category)}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
+      <main>
+        {/* Task 1: filters */}
+        <section aria-label="Filters">
+          <p>
+            <label htmlFor="filter-category">Category</label>
+            <select
+              id="filter-category"
+              value={activeCategory}
+              onChange={(e) => setActiveCategory(e.target.value)}
+            >
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </p>
 
-        {status === "loading" && (
-          <div className="text-center py-5">
-            <div className="spinner-border text-success" role="status">
-              <span className="visually-hidden">Loading products…</span>
-            </div>
-          </div>
-        )}
+          <p>
+            <label htmlFor="filter-badge">Eco-Badge</label>
+            <select
+              id="filter-badge"
+              value={activeBadge}
+              onChange={(e) => setActiveBadge(e.target.value)}
+            >
+              {badges.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+          </p>
+
+          <p>
+            <label htmlFor="filter-price">Max price: ${maxPrice.toFixed(0)}</label>
+            <input
+              id="filter-price"
+              type="range"
+              min={0}
+              max={priceCeiling}
+              step={1}
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(Number(e.target.value))}
+            />
+          </p>
+
+          <p>
+            <label htmlFor="filter-rating">Min rating: {minRating.toFixed(1)}★</label>
+            <input
+              id="filter-rating"
+              type="range"
+              min={0}
+              max={5}
+              step={0.5}
+              value={minRating}
+              onChange={(e) => setMinRating(Number(e.target.value))}
+            />
+          </p>
+        </section>
+
+        {status === "loading" && <p role="status">Loading products…</p>}
 
         {status === "error" && (
-          <div className="alert alert-danger text-center" role="alert">
-            Sorry, we couldn&apos;t load the products. Please try again later.
-          </div>
+          <p role="alert">Sorry, we couldn&apos;t load the products. Please try again later.</p>
         )}
 
         {status === "ready" && (
-          <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
-            {visibleProducts.map((product) => (
-              <div className="col" key={product.id}>
-                <ProductCard product={product} />
+          <>
+            <p>Results: {visibleProducts.length}</p>
+
+            {visibleProducts.length === 0 ? (
+              <div role="status">
+                <p>No products match your search.</p>
+                <button type="button" onClick={resetFilters}>
+                  Clear filters
+                </button>
               </div>
-            ))}
-          </div>
+            ) : (
+              <div>
+                {visibleProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onAdd={addToCart}
+                    onOpen={setSelected}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </main>
 
-      <section className="bg-body-secondary py-5">
-        <div className="container">
-          <div className="row text-center g-4">
-            <div className="col-md-4">
-              <div className="fs-1">♻️</div>
-              <h5 className="mt-2">Plastic-Free Packaging</h5>
-              <p className="text-muted mb-0">Every order ships without single-use plastic.</p>
-            </div>
-            <div className="col-md-4">
-              <div className="fs-1">🌍</div>
-              <h5 className="mt-2">Carbon-Neutral Shipping</h5>
-              <p className="text-muted mb-0">We offset every delivery, every time.</p>
-            </div>
-            <div className="col-md-4">
-              <div className="fs-1">🤝</div>
-              <h5 className="mt-2">Locally Sourced</h5>
-              <p className="text-muted mb-0">Supporting makers and suppliers in our community.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <footer className="bg-success text-white py-4 mt-0">
-        <div className="container d-flex flex-wrap justify-content-between align-items-center gap-2">
-          <span className="fw-semibold">🌿 GreenCart</span>
-          <small className="mb-0">
-            &copy; {new Date().getFullYear()} GreenCart. All rights reserved.
-          </small>
-        </div>
+      <footer>
+        <span>🌿 GreenCart</span>
+        <small>&copy; {new Date().getFullYear()} GreenCart. All rights reserved.</small>
       </footer>
+
+      {/* Task 2: product detail */}
+      {selected && (
+        <ProductDetail
+          product={selected}
+          related={related}
+          onClose={() => setSelected(null)}
+          onAdd={(product, quantity) => addToCart(product, quantity)}
+        />
+      )}
+
+      {/* Task 3: cart */}
+      {cartOpen && (
+        <CartPage
+          lines={cart}
+          subtotal={subtotal}
+          onSetQuantity={setQuantity}
+          onRemove={removeFromCart}
+          onClose={() => setCartOpen(false)}
+          onCheckout={() => setToast("Checkout is coming in a future release")}
+        />
+      )}
+
+      {/* Confirmation toast (FR4) */}
+      {toast && (
+        <p role="status" aria-live="polite">
+          {toast}
+        </p>
+      )}
     </>
   );
 }

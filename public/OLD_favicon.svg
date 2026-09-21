@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+    <!-- Seedling (🌱) favicon for GreenCart -->
+    <rect width="32" height="32" rx="6" fill="#eaf7ee" />
+    <!-- stem -->
+    <path
+        d="M16 29c0-7 0-10.5 0-14"
+        stroke="#2e9e4f"
+        stroke-width="2"
+        stroke-linecap="round"
+        fill="none"
+    />
+    <!-- left leaf -->
+    <path
+        d="M16 17c0-4.5-3.5-8-8-8-0.4 0-0.8 0-1.2 0.1C7 13.5 10.6 17 15.2 17c0.3 0 0.5 0 0.8 0Z"
+        fill="#3cb371"
+    />
+    <!-- right leaf -->
+    <path
+        d="M16 15c0-4.5 3.5-8 8-8 0.4 0 0.8 0 1.2 0.1C25 11.5 21.4 15 16.8 15c-0.3 0-0.5 0-0.8 0Z"
+        fill="#2e9e4f"
+    />
+</svg>
