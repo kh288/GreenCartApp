@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { AdminPanel } from "./components/AdminPanel";
 import { CartPage } from "./components/CartPage";
 import { Catalog } from "./components/Catalog";
 import { Filters } from "./components/Filters";
@@ -16,13 +17,22 @@ import { getRelatedProducts } from "./utils/filterProducts";
 import type { Product } from "./types";
 
 export default function App() {
-  const { products, status } = useProducts();
+  const {
+    products,
+    status,
+    addProduct,
+    updateProduct,
+    removeProduct,
+    resetProducts,
+    hasAdminChanges,
+  } = useProducts();
   const { toast, showToast } = useToast();
   const { summary, track, clear } = useAnalytics();
 
   const [selected, setSelected] = useState<Product | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [insightsOpen, setInsightsOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
 
   const {
     filters,
@@ -72,6 +82,35 @@ export default function App() {
 
   const related = useMemo(() => getRelatedProducts(selected, products), [selected, products]);
 
+  // FR8: route a save to add or update depending on whether it already exists.
+  const handleSaveProduct = useCallback(
+    (product: Product) => {
+      const exists = products.some((item) => item.id === product.id);
+      if (exists) {
+        updateProduct(product);
+        showToast(`Updated ${product.name}`);
+      } else {
+        addProduct(product);
+        showToast(`Added ${product.name}`);
+      }
+    },
+    [products, addProduct, updateProduct, showToast],
+  );
+
+  const handleRemoveProduct = useCallback(
+    (id: string) => {
+      const product = products.find((item) => item.id === id);
+      removeProduct(id);
+      if (product) showToast(`Removed ${product.name}`);
+    },
+    [products, removeProduct, showToast],
+  );
+
+  const handleResetProducts = useCallback(() => {
+    resetProducts();
+    showToast("Catalog reset to CSV data");
+  }, [resetProducts, showToast]);
+
   // FR7: wrap add-to-cart so each add is logged with its quantity.
   const handleAdd = useCallback(
     (product: Product, quantity = 1) => {
@@ -92,6 +131,7 @@ export default function App() {
         cartCount={cartCount}
         onOpenCart={() => setCartOpen(true)}
         onOpenInsights={() => setInsightsOpen(true)}
+        onOpenAdmin={() => setAdminOpen(true)}
       />
 
       <header className="hero text-white py-5">
@@ -190,6 +230,17 @@ export default function App() {
 
       {insightsOpen && (
         <InsightsPanel summary={summary} onClear={clear} onClose={() => setInsightsOpen(false)} />
+      )}
+
+      {adminOpen && (
+        <AdminPanel
+          products={products}
+          onSave={handleSaveProduct}
+          onRemove={handleRemoveProduct}
+          onReset={handleResetProducts}
+          onClose={() => setAdminOpen(false)}
+          hasAdminChanges={hasAdminChanges}
+        />
       )}
 
       <Toast message={toast} />

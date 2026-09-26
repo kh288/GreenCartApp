@@ -2,10 +2,11 @@ type NavbarProps = {
   cartCount: number;
   onOpenCart: () => void;
   onOpenInsights: () => void;
+  onOpenAdmin: () => void;
 };
 
-/** Top navigation bar with the brand, insights link, and a cart button. */
-export function Navbar({ cartCount, onOpenCart, onOpenInsights }: NavbarProps) {
+/** Top navigation bar with the brand, admin/insights links, and a cart button. */
+export function Navbar({ cartCount, onOpenCart, onOpenInsights, onOpenAdmin }: NavbarProps) {
   return (
     <nav className="navbar navbar-expand-lg bg-success-subtle border-bottom shadow-sm sticky-top">
       <div className="container">
@@ -43,7 +44,12 @@ export function Navbar({ cartCount, onOpenCart, onOpenInsights }: NavbarProps) {
               </a>
             </li>
             <li className="nav-item">
-              <button type="button" className="nav-link btn btn-link" onClick={onOpenInsights}>
+              <button type="button" className="btn btn-link nav-link" onClick={onOpenAdmin}>
+                Admin
+              </button>
+            </li>
+            <li className="nav-item">
+              <button type="button" className="btn btn-link nav-link" onClick={onOpenInsights}>
                 Insights
               </button>
             </li>
