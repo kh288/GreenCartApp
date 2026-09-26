@@ -131,21 +131,27 @@ every asset as-is.
     │   ├── ProductCard.tsx
     │   ├── ProductDetail.tsx
     │   ├── CartPage.tsx
+    │   ├── CheckoutDialog.tsx      # Shipping form + order confirmation
+    │   ├── AdminPanel.tsx          # Product/inventory management
+    │   ├── InsightsPanel.tsx       # Analytics dashboard
     │   ├── QuantityStepper.tsx
     │   ├── ProductImage.tsx
     │   ├── StarRating.tsx
     │   ├── BadgeList.tsx
     │   └── Toast.tsx
     ├── hooks/                      # Reusable stateful logic
-    │   ├── useProducts.ts          # Loads the product catalog
+    │   ├── useProducts.ts          # Loads the catalog + admin mutations
     │   ├── useFilters.ts           # Search + filter state
-    │   ├── useCart.ts              # Cart operations
+    │   ├── useCart.ts              # Cart operations (persisted)
+    │   ├── useAnalytics.ts         # Live analytics event subscription
     │   └── useToast.ts             # Transient status messages
     └── utils/
         ├── getCSV.ts               # CSV parsing + product mapping
         ├── cartStorage.ts          # Guest cart persistence (localStorage)
+        ├── productStore.ts         # Admin overlay over the CSV (localStorage)
+        ├── analytics.ts            # Event log + summarization
         ├── filterProducts.ts       # Pure filter/derive helpers
-        └── format.ts               # Formatting helpers
+        └── format.ts               # Formatting + money helpers
 ```
 
 ## Data
@@ -161,16 +167,35 @@ catalog, edit the CSV and re-run the build (or the dev server).
 
 ## Features implemented
 
-The first half of the planned features (three user stories):
+### Shopping experience
 
-1. **Search and browse inventory** — keyword search plus category, eco-badge,
-   price, and rating filters, with a results count and empty state.
-2. **View product details** — image, brand, badges, rating, price, availability,
-   description, ingredients/sourcing, a quantity selector, and related products.
-3. **Add to cart and manage cart** — add, update quantity, and remove items,
-   with line totals, a running subtotal, and a cart count in the navigation bar.
+1. **Search and browse inventory** (FR1, FR2) — keyword search plus category,
+   eco-badge, price, and rating filters, with a results count and empty state.
+2. **View product details** (FR3, FR6) — image, brand, badges, rating, price,
+   availability, description, ingredients/sourcing, a quantity selector, and
+   related-product recommendations.
+3. **Add to cart and manage cart** (FR4, FR5) — add, update quantity, and remove
+   items, with line totals, a running subtotal, and a cart count in the navbar.
    The cart is **persisted in `localStorage`** for guest sessions and expires
    after **24 hours** without activity.
+4. **Checkout** — shipping form, order summary (subtotal/shipping/total), and an
+   order confirmation with a generated reference. Simulated only — no payment is
+   processed and no data leaves the browser.
+
+### Admin & analytics
+
+5. **Analytics** (FR7) — anonymized search, view, add-to-cart, remove, and
+   checkout events are logged to `localStorage` (capped at 500). The **Insights**
+   panel surfaces top search terms, most-viewed products, and most-added products.
+   No personal data or session identifiers are stored.
+6. **Product administration** (FR8) — the **Admin** panel lets an admin add, edit,
+   and remove products and inventory. Changes are stored as an overlay in
+   `localStorage` on top of the CSV seed and can be reset to the original CSV.
+
+> **Note on the CSV:** the catalog is seeded from
+> `src/data/GreenCart_Products.csv` at build time. Admin changes are persisted in
+> the browser (an overlay), not written back to the CSV — appropriate for an MVP
+> where the CSV stands in for a database.
 
 ## Development notes
 
