@@ -30,9 +30,7 @@ export function ProductDetail({ product, related, onClose, onAdd }: ProductDetai
         <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
           <div className="modal-content border-0 shadow">
             <div className="modal-header bg-success-subtle">
-              <h2 className="modal-title h5 d-flex align-items-center gap-2">
-                <span aria-hidden="true">🌿</span> {product.name}
-              </h2>
+              <h2 className="modal-title h5 d-flex align-items-center gap-2">{product.name}</h2>
               <button type="button" className="btn-close" aria-label="Close" onClick={onClose} />
             </div>
 

@@ -60,7 +60,6 @@ export function Navbar({ cartCount, onOpenCart, onOpenInsights, onOpenAdmin }: N
             className="btn btn-success d-flex align-items-center gap-2 position-relative"
             onClick={onOpenCart}
           >
-            <span aria-hidden="true">🛒</span>
             <span>Cart</span>
             {cartCount > 0 && (
               <span className="badge rounded-pill text-bg-danger">

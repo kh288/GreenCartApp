@@ -19,9 +19,7 @@ export function InsightsPanel({ summary, onClear, onClose }: InsightsPanelProps)
       <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div className="modal-content border-0 shadow">
           <div className="modal-header bg-success-subtle">
-            <h2 className="modal-title h5 d-flex align-items-center gap-2">
-              <span aria-hidden="true">📊</span> Store Insights
-            </h2>
+            <h2 className="modal-title h5 d-flex align-items-center gap-2">Store Insights</h2>
             <button type="button" className="btn-close" aria-label="Close" onClick={onClose} />
           </div>
 

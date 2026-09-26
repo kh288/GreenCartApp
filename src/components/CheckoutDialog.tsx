@@ -76,7 +76,7 @@ export function CheckoutDialog({ lines, subtotal, onClose, onPlaceOrder }: Check
         <div className="modal-content border-0 shadow">
           <div className="modal-header bg-success-subtle">
             <h2 className="modal-title h5 d-flex align-items-center gap-2">
-              <span aria-hidden="true">🧾</span> {confirmed ? "Order Confirmed" : "Checkout"}
+              {confirmed ? "Order Confirmed" : "Checkout"}
             </h2>
             <button type="button" className="btn-close" aria-label="Close" onClick={onClose} />
           </div>

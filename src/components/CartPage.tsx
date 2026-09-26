@@ -30,18 +30,13 @@ export function CartPage({
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div className="modal-content border-0 shadow">
           <div className="modal-header bg-success-subtle">
-            <h2 className="modal-title h5 d-flex align-items-center gap-2">
-              <span aria-hidden="true">🛒</span> Your Cart
-            </h2>
+            <h2 className="modal-title h5 d-flex align-items-center gap-2">Your Cart</h2>
             <button type="button" className="btn-close" aria-label="Close" onClick={onClose} />
           </div>
 
           <div className="modal-body">
             {lines.length === 0 ? (
               <div className="text-center py-4 text-muted" role="status">
-                <div className="fs-1" aria-hidden="true">
-                  🛒
-                </div>
                 <p className="mb-0">Your cart is empty.</p>
               </div>
             ) : (
