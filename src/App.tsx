@@ -11,6 +11,7 @@ import { ProductDetail } from "./components/ProductDetail";
 import { Toast } from "./components/Toast";
 import { useAnalytics } from "./hooks/useAnalytics";
 import { useCart } from "./hooks/useCart";
+import { useDebouncedSearch } from "./hooks/useDebouncedSearch";
 import { useFilters } from "./hooks/useFilters";
 import { useProducts } from "./hooks/useProducts";
 import { useToast } from "./hooks/useToast";
@@ -50,14 +51,12 @@ export default function App() {
     resetFilters,
   } = useFilters(products);
 
-  // FR7: record a search whenever the keyword changes.
-  const handleSearch = useCallback(
-    (value: string) => {
-      setSearch(value);
-      if (value.trim()) track({ type: "search", term: value.trim() });
-    },
-    [setSearch, track],
-  );
+  // Update the visible results immediately as the user types.
+  const handleSearch = useCallback((value: string) => setSearch(value), [setSearch]);
+
+  // FR7: but log the search term only after the user stops typing, so each
+  // keystroke ("s", "so", "soa"...) is not recorded as a separate search.
+  useDebouncedSearch(filters.search, track);
 
   const handleOpen = useCallback(
     (product: Product) => {
