@@ -1,11 +1,13 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { CartPage } from "./components/CartPage";
 import { Catalog } from "./components/Catalog";
 import { Filters } from "./components/Filters";
 import { Footer } from "./components/Footer";
+import { InsightsPanel } from "./components/InsightsPanel";
 import { Navbar } from "./components/Navbar";
 import { ProductDetail } from "./components/ProductDetail";
 import { Toast } from "./components/Toast";
+import { useAnalytics } from "./hooks/useAnalytics";
 import { useCart } from "./hooks/useCart";
 import { useFilters } from "./hooks/useFilters";
 import { useProducts } from "./hooks/useProducts";
@@ -16,6 +18,11 @@ import type { Product } from "./types";
 export default function App() {
   const { products, status } = useProducts();
   const { toast, showToast } = useToast();
+  const { summary, track, clear } = useAnalytics();
+
+  const [selected, setSelected] = useState<Product | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [insightsOpen, setInsightsOpen] = useState(false);
 
   const {
     filters,
@@ -31,18 +38,61 @@ export default function App() {
     resetFilters,
   } = useFilters(products);
 
+  // FR7: record a search whenever the keyword changes.
+  const handleSearch = useCallback(
+    (value: string) => {
+      setSearch(value);
+      if (value.trim()) track({ type: "search", term: value.trim() });
+    },
+    [setSearch, track],
+  );
+
+  const handleOpen = useCallback(
+    (product: Product) => {
+      setSelected(product);
+      // FR7: record a product view.
+      track({ type: "view", productId: product.id, productName: product.name });
+    },
+    [track],
+  );
+
   const { cart, cartCount, subtotal, addToCart, setQuantity, removeFromCart } = useCart((product) =>
     showToast(`Added ${product.name} to your cart`),
   );
 
-  const [selected, setSelected] = useState<Product | null>(null);
-  const [cartOpen, setCartOpen] = useState(false);
+  // FR7: wrap cart removal so it is tracked.
+  const handleRemove = useCallback(
+    (id: string) => {
+      const line = cart.find((item) => item.product.id === id);
+      if (line) track({ type: "remove_from_cart", productId: id, productName: line.product.name });
+      removeFromCart(id);
+    },
+    [cart, removeFromCart, track],
+  );
 
   const related = useMemo(() => getRelatedProducts(selected, products), [selected, products]);
 
+  // FR7: wrap add-to-cart so each add is logged with its quantity.
+  const handleAdd = useCallback(
+    (product: Product, quantity = 1) => {
+      addToCart(product, quantity);
+      track({
+        type: "add_to_cart",
+        productId: product.id,
+        productName: product.name,
+        quantity,
+      });
+    },
+    [addToCart, track],
+  );
+
   return (
     <div className="d-flex flex-column min-vh-100">
-      <Navbar cartCount={cartCount} onOpenCart={() => setCartOpen(true)} />
+      <Navbar
+        cartCount={cartCount}
+        onOpenCart={() => setCartOpen(true)}
+        onOpenInsights={() => setInsightsOpen(true)}
+      />
 
       <header className="hero text-white py-5">
         <div className="container text-center py-4">
@@ -66,7 +116,7 @@ export default function App() {
                 categories={categories}
                 badges={badges}
                 priceCeiling={priceCeiling}
-                onSearch={setSearch}
+                onSearch={handleSearch}
                 onCategory={setCategory}
                 onBadge={setBadge}
                 onMaxPrice={setMaxPrice}
@@ -79,8 +129,8 @@ export default function App() {
               <Catalog
                 status={status}
                 products={visibleProducts}
-                onAdd={addToCart}
-                onOpen={setSelected}
+                onAdd={(product) => handleAdd(product, 1)}
+                onOpen={handleOpen}
                 onClearFilters={resetFilters}
               />
             </div>
@@ -123,7 +173,7 @@ export default function App() {
           product={selected}
           related={related}
           onClose={() => setSelected(null)}
-          onAdd={addToCart}
+          onAdd={handleAdd}
         />
       )}
 
@@ -132,10 +182,14 @@ export default function App() {
           lines={cart}
           subtotal={subtotal}
           onSetQuantity={setQuantity}
-          onRemove={removeFromCart}
+          onRemove={handleRemove}
           onClose={() => setCartOpen(false)}
           onCheckout={() => showToast("Checkout is coming in a future release")}
         />
+      )}
+
+      {insightsOpen && (
+        <InsightsPanel summary={summary} onClear={clear} onClose={() => setInsightsOpen(false)} />
       )}
 
       <Toast message={toast} />
