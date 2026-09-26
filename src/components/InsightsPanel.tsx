@@ -27,7 +27,7 @@ export function InsightsPanel({ summary, onClear, onClose }: InsightsPanelProps)
 
           <div className="modal-body">
             <p className="text-muted small">
-              Anonymized activity logged in this browser (FR7). No personal data is collected.
+              Anonymized activity logged in this browser. No personal data is collected.
             </p>
 
             <div className="row row-cols-2 row-cols-md-4 g-3 mb-4">
