@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { type CartLine, type Product } from "../types";
-import { clearCart, loadCart, saveCart } from "../utils/cartStorage";
+import { clearCart as clearStoredCart, loadCart, saveCart } from "../utils/cartStorage";
 
 type AddToCart = (product: Product, quantity?: number) => void;
 
@@ -11,6 +11,7 @@ type UseCartResult = {
   addToCart: AddToCart;
   setQuantity: (id: string, quantity: number) => void;
   removeFromCart: (id: string) => void;
+  clearCart: () => void;
 };
 
 /**
@@ -28,7 +29,7 @@ export function useCart(onAdd?: (product: Product) => void): UseCartResult {
   // Persist on every change; an empty cart clears storage entirely.
   useEffect(() => {
     if (cart.length === 0) {
-      clearCart();
+      clearStoredCart();
       return;
     }
     saveCart(cart);
@@ -73,5 +74,8 @@ export function useCart(onAdd?: (product: Product) => void): UseCartResult {
     [cart],
   );
 
-  return { cart, cartCount, subtotal, addToCart, setQuantity, removeFromCart };
+  /** Empties the cart (used after a successful checkout). */
+  const clearCart = useCallback(() => setCart([]), []);
+
+  return { cart, cartCount, subtotal, addToCart, setQuantity, removeFromCart, clearCart };
 }

@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { AdminPanel } from "./components/AdminPanel";
 import { CartPage } from "./components/CartPage";
 import { Catalog } from "./components/Catalog";
+import { CheckoutDialog, type OrderSummary } from "./components/CheckoutDialog";
 import { Filters } from "./components/Filters";
 import { Footer } from "./components/Footer";
 import { InsightsPanel } from "./components/InsightsPanel";
@@ -33,6 +34,7 @@ export default function App() {
   const [cartOpen, setCartOpen] = useState(false);
   const [insightsOpen, setInsightsOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const {
     filters,
@@ -66,8 +68,8 @@ export default function App() {
     [track],
   );
 
-  const { cart, cartCount, subtotal, addToCart, setQuantity, removeFromCart } = useCart((product) =>
-    showToast(`Added ${product.name} to your cart`),
+  const { cart, cartCount, subtotal, addToCart, setQuantity, removeFromCart, clearCart } = useCart(
+    (product) => showToast(`Added ${product.name} to your cart`),
   );
 
   // FR7: wrap cart removal so it is tracked.
@@ -110,6 +112,22 @@ export default function App() {
     resetProducts();
     showToast("Catalog reset to CSV data");
   }, [resetProducts, showToast]);
+
+  // Open checkout from the cart; closes the cart dialog first.
+  const handleOpenCheckout = useCallback(() => {
+    setCartOpen(false);
+    setCheckoutOpen(true);
+  }, []);
+
+  // Complete the order: log the checkout event, clear the cart, keep the
+  // confirmation dialog open so the user sees their order reference.
+  const handlePlaceOrder = useCallback(
+    (order: OrderSummary) => {
+      track({ type: "checkout", quantity: order.itemCount });
+      clearCart();
+    },
+    [track, clearCart],
+  );
 
   // FR7: wrap add-to-cart so each add is logged with its quantity.
   const handleAdd = useCallback(
@@ -224,7 +242,16 @@ export default function App() {
           onSetQuantity={setQuantity}
           onRemove={handleRemove}
           onClose={() => setCartOpen(false)}
-          onCheckout={() => showToast("Checkout is coming in a future release")}
+          onCheckout={handleOpenCheckout}
+        />
+      )}
+
+      {checkoutOpen && (
+        <CheckoutDialog
+          lines={cart}
+          subtotal={subtotal}
+          onClose={() => setCheckoutOpen(false)}
+          onPlaceOrder={handlePlaceOrder}
         />
       )}
 

@@ -77,9 +77,7 @@ export function CartPage({
                   Checkout
                 </button>
               </div>
-              <small className="text-muted text-center">
-                Checkout &amp; payments are planned for a future release.
-              </small>
+              <small className="text-muted text-center">Shipping is free on orders over $40.</small>
             </div>
           )}
         </div>
