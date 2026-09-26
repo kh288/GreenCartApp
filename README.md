@@ -9,6 +9,10 @@ This project is built for a direct-to-consumer (B2C) shopping experience:
 customers browse and search products, view product details, and manage a
 shopping cart.
 
+## Preview
+
+<img src="./docs/screenshot_1.png" alt="GreenCart storefront showing the hero, product filters, and catalog grid" width="900" />
+
 ## Tech stack
 
 | Layer      | Technology                                   |
@@ -17,10 +21,28 @@ shopping cart.
 | Build tool | Vite 8                                       |
 | Linting    | Oxlint                                       |
 | Formatting | Prettier                                     |
-| Styling    | None yet.                                    |
+| Styling    | Bootstrap 5.3                                |
 | Data       | CSV file (`src/data/GreenCart_Products.csv`) |
 
 ## Prerequisites
+
+### Viewing a production build
+
+Do **not** open `dist/index.html` directly from the filesystem (`file://`) —
+browsers block ES modules over `file://` (you will see a CORS/MIME error).
+Always serve the build over HTTP:
+
+```bash
+npm run build
+npm run preview
+```
+
+Then open the URL it prints (usually <http://localhost:4173>).
+
+If you prefer to serve the `dist/` folder with another static server, that works
+too (for example `npx serve dist`), because the build uses relative asset paths.
+
+### Running development build
 
 You need **Node.js** and **npm** installed before running the project.
 
@@ -65,22 +87,6 @@ npm --version
 | `npm run build`   | Type-check (`tsc -b`) and produce a production build in `dist/`. |
 | `npm run preview` | Serve the production build locally to verify it.                 |
 | `npm run lint`    | Run Oxlint over the project.                                     |
-
-### Viewing a production build
-
-Do **not** open `dist/index.html` directly from the filesystem (`file://`) —
-browsers block ES modules over `file://` (you will see a CORS/MIME error).
-Always serve the build over HTTP:
-
-```bash
-npm run build
-npm run preview
-```
-
-Then open the URL it prints (usually <http://localhost:4173>).
-
-If you prefer to serve the `dist/` folder with another static server, that works
-too (for example `npx serve dist`), because the build uses relative asset paths.
 
 ## Deployment (GitHub Pages)
 
