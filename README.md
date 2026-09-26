@@ -26,24 +26,6 @@ shopping cart.
 
 ## Prerequisites
 
-### Viewing a production build
-
-Do **not** open `dist/index.html` directly from the filesystem (`file://`) —
-browsers block ES modules over `file://` (you will see a CORS/MIME error).
-Always serve the build over HTTP:
-
-```bash
-npm run build
-npm run preview
-```
-
-Then open the URL it prints (usually <http://localhost:4173>).
-
-If you prefer to serve the `dist/` folder with another static server, that works
-too (for example `npx serve dist`), because the build uses relative asset paths.
-
-### Running development build
-
 You need **Node.js** and **npm** installed before running the project.
 
 | Tool | Required version     | Notes                                                           |
@@ -87,6 +69,22 @@ npm --version
 | `npm run build`   | Type-check (`tsc -b`) and produce a production build in `dist/`. |
 | `npm run preview` | Serve the production build locally to verify it.                 |
 | `npm run lint`    | Run Oxlint over the project.                                     |
+
+### Viewing a production build
+
+Do **not** open `dist/index.html` directly from the filesystem (`file://`) —
+browsers block ES modules over `file://` (you will see a CORS/MIME error).
+Always serve the build over HTTP:
+
+```bash
+npm run build
+npm run preview
+```
+
+Then open the URL it prints (usually <http://localhost:4173>).
+
+If you prefer to serve the `dist/` folder with another static server, that works
+too (for example `npx serve dist`), because the build uses relative asset paths.
 
 ## Deployment (GitHub Pages)
 
@@ -145,6 +143,7 @@ every asset as-is.
     │   └── useToast.ts             # Transient status messages
     └── utils/
         ├── getCSV.ts               # CSV parsing + product mapping
+        ├── cartStorage.ts          # Guest cart persistence (localStorage)
         ├── filterProducts.ts       # Pure filter/derive helpers
         └── format.ts               # Formatting helpers
 ```
@@ -170,6 +169,8 @@ The first half of the planned features (three user stories):
    description, ingredients/sourcing, a quantity selector, and related products.
 3. **Add to cart and manage cart** — add, update quantity, and remove items,
    with line totals, a running subtotal, and a cart count in the navigation bar.
+   The cart is **persisted in `localStorage`** for guest sessions and expires
+   after **24 hours** without activity.
 
 ## Development notes
 

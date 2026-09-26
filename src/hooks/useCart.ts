@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { type CartLine, type Product } from "../types";
+import { clearCart, loadCart, saveCart } from "../utils/cartStorage";
 
 type AddToCart = (product: Product, quantity?: number) => void;
 
@@ -17,9 +18,21 @@ type UseCartResult = {
  *
  * - `addToCart` merges quantity into an existing line rather than duplicating it.
  * - `setQuantity` removes the line when the quantity would drop to zero.
+ * - The cart is persisted to localStorage for guest sessions and expires after
+ *   24 hours without activity (FR5).
  */
 export function useCart(onAdd?: (product: Product) => void): UseCartResult {
-  const [cart, setCart] = useState<CartLine[]>([]);
+  // Lazily hydrate from storage so the first paint already reflects the cart.
+  const [cart, setCart] = useState<CartLine[]>(() => loadCart());
+
+  // Persist on every change; an empty cart clears storage entirely.
+  useEffect(() => {
+    if (cart.length === 0) {
+      clearCart();
+      return;
+    }
+    saveCart(cart);
+  }, [cart]);
 
   const addToCart = useCallback<AddToCart>(
     (product, quantity = 1) => {
