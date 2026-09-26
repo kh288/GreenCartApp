@@ -18,18 +18,25 @@ export function QuantityStepper({
   onChange,
 }: QuantityStepperProps) {
   return (
-    <div>
+    <div className="input-group" style={{ maxWidth: "8rem" }}>
       <button
         type="button"
+        className="btn btn-outline-success"
         aria-label={`Decrease ${label}`}
         disabled={disabled || quantity <= 1}
         onClick={() => onChange(Math.max(1, quantity - 1))}
       >
         −
       </button>
-      <output aria-live="polite">{quantity}</output>
+      <output
+        className="form-control text-center fw-semibold d-flex align-items-center justify-content-center"
+        aria-live="polite"
+      >
+        {quantity}
+      </output>
       <button
         type="button"
+        className="btn btn-outline-success"
         aria-label={`Increase ${label}`}
         disabled={disabled || quantity >= max}
         onClick={() => onChange(Math.min(max, quantity + 1))}

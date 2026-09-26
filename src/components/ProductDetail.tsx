@@ -19,66 +19,92 @@ export function ProductDetail({ product, related, onClose, onAdd }: ProductDetai
   const inStock = product.inventory > 0;
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={product.name}>
-      <header>
-        <h2>{product.name}</h2>
-        <button type="button" aria-label="Close" onClick={onClose}>
-          ✕
-        </button>
-      </header>
+    <>
+      <div
+        className="modal app-modal-backdrop d-block"
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label={product.name}
+      >
+        <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+          <div className="modal-content border-0 shadow">
+            <div className="modal-header bg-success-subtle">
+              <h2 className="modal-title h5 d-flex align-items-center gap-2">
+                <span aria-hidden="true">🌿</span> {product.name}
+              </h2>
+              <button type="button" className="btn-close" aria-label="Close" onClick={onClose} />
+            </div>
 
-      <div>
-        <section>
-          <ProductImage src={product.imageUrl} alt={product.name} size={320} />
-        </section>
+            <div className="modal-body">
+              <div className="row g-4">
+                <div className="col-md-5">
+                  <div className="ratio ratio-1x1 bg-body-secondary rounded overflow-hidden">
+                    <ProductImage src={product.imageUrl} alt={product.name} size={320} />
+                  </div>
+                </div>
 
-        <section>
-          <p>
-            <small>{product.brand}</small>
-          </p>
-          <BadgeList badges={product.ecoBadges} />
-          <StarRating rating={product.rating} reviewCount={product.reviewCount} />
-          <p>
-            <strong>{formatPrice(product.price)}</strong>
-          </p>
-          <p>{inStock ? `In stock (${product.inventory} available)` : "Out of stock"}</p>
+                <div className="col-md-7">
+                  <small className="text-uppercase text-muted fw-semibold d-block mb-2">
+                    {product.brand}
+                  </small>
+                  <div className="mb-2">
+                    <BadgeList badges={product.ecoBadges} />
+                  </div>
+                  <StarRating rating={product.rating} reviewCount={product.reviewCount} />
 
-          <DetailSection heading="Description" body={product.description} />
-          <DetailSection
-            heading="Ingredients / Sourcing"
-            body={product.ingredients || "Not specified."}
-          />
-          <DetailSection
-            heading="Reviews"
-            body={`${product.reviewCount} reviews · average ${product.rating.toFixed(1)} / 5`}
-          />
-          {/* NOTE: individual review text is not in the current dataset. */}
+                  <p className="fs-3 fw-bold text-success mt-3 mb-1">
+                    {formatPrice(product.price)}
+                  </p>
+                  <p className={`small ${inStock ? "text-success" : "text-danger"}`}>
+                    {inStock ? `In stock (${product.inventory} available)` : "Out of stock"}
+                  </p>
 
-          <div>
-            <QuantityStepper
-              quantity={quantity}
-              max={product.inventory}
-              disabled={!inStock}
-              onChange={setQuantity}
-            />
-            <button type="button" disabled={!inStock} onClick={() => onAdd(product, quantity)}>
-              {inStock ? "Add to Cart" : "Notify Me"}
-            </button>
+                  <DetailSection heading="Description" body={product.description} />
+                  <DetailSection
+                    heading="Ingredients / Sourcing"
+                    body={product.ingredients || "Not specified."}
+                  />
+                  <DetailSection
+                    heading="Reviews"
+                    body={`${product.reviewCount} reviews · average ${product.rating.toFixed(1)} / 5`}
+                  />
+                  {/* NOTE: individual review text is not in the current dataset. */}
+
+                  <div className="d-flex align-items-center gap-3 mt-4">
+                    <QuantityStepper
+                      quantity={quantity}
+                      max={product.inventory}
+                      disabled={!inStock}
+                      onChange={setQuantity}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-success flex-grow-1"
+                      disabled={!inStock}
+                      onClick={() => onAdd(product, quantity)}
+                    >
+                      {inStock ? "Add to Cart" : "Notify Me"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <RelatedProducts related={related} onAdd={onAdd} />
+            </div>
           </div>
-        </section>
+        </div>
       </div>
-
-      <RelatedProducts related={related} onAdd={onAdd} />
-    </div>
+    </>
   );
 }
 
 function DetailSection({ heading, body }: { heading: string; body: string }) {
   return (
-    <>
-      <h3>{heading}</h3>
-      <p>{body}</p>
-    </>
+    <div className="mt-3">
+      <h3 className="h6 text-uppercase text-muted fw-semibold">{heading}</h3>
+      <p className="mb-0">{body}</p>
+    </div>
   );
 }
 
@@ -92,22 +118,31 @@ function RelatedProducts({
   if (related.length === 0) return null;
 
   return (
-    <section>
-      <h3>You Might Also Like</h3>
-      <ul>
+    <section className="mt-4 pt-4 border-top">
+      <h3 className="h5 mb-3">You Might Also Like</h3>
+      <div className="row row-cols-2 row-cols-md-3 g-3">
         {related.map((item) => (
-          <li key={item.id}>
-            <ProductImage src={item.imageUrl} alt={item.name} size={120} />
-            <p>{item.name}</p>
-            <p>
-              <strong>{formatPrice(item.price)}</strong>
-            </p>
-            <button type="button" disabled={item.inventory <= 0} onClick={() => onAdd(item, 1)}>
-              Add to Cart
-            </button>
-          </li>
+          <div className="col" key={item.id}>
+            <div className="card h-100 border-0 shadow-sm">
+              <div className="ratio ratio-1x1 bg-body-secondary overflow-hidden">
+                <ProductImage src={item.imageUrl} alt={item.name} size={120} />
+              </div>
+              <div className="card-body d-flex flex-column">
+                <p className="small fw-semibold mb-1">{item.name}</p>
+                <p className="fw-bold text-success mb-2">{formatPrice(item.price)}</p>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-success mt-auto"
+                  disabled={item.inventory <= 0}
+                  onClick={() => onAdd(item, 1)}
+                >
+                  {item.inventory > 0 ? "Add to Cart" : "Out of Stock"}
+                </button>
+              </div>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     </section>
   );
 }

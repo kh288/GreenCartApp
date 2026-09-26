@@ -7,14 +7,14 @@ type StarRatingProps = {
 export function StarRating({ rating, reviewCount }: StarRatingProps) {
   const fullStars = Math.floor(rating);
   return (
-    <p>
-      <span aria-hidden="true">
+    <div className="d-flex align-items-center gap-1">
+      <span className="text-warning" aria-hidden="true">
         {"★".repeat(fullStars)}
         {"☆".repeat(5 - fullStars)}
-      </span>{" "}
-      <small>
+      </span>
+      <small className="text-muted">
         {rating.toFixed(1)} ({reviewCount})
       </small>
-    </p>
+    </div>
   );
 }

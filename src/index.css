@@ -1,0 +1,66 @@
+/* ---------------------------------------------------------------------------
+   GreenCart theme tweaks layered on top of Bootstrap.
+   Green is the brand's primary color; we lean on Bootstrap's `success` role
+   for primary actions, but nudge the base variable so interactive controls
+   (focus rings, links, active states) read as brand green too.
+--------------------------------------------------------------------------- */
+
+:root {
+  /* Align Bootstrap's primary role with the brand green. */
+  --bs-primary: #198754;
+  --bs-primary-rgb: 25, 135, 84;
+  --bs-link-color: #198754;
+  --bs-link-color-rgb: 25, 135, 84;
+  --bs-link-hover-color: #146c43;
+  --bs-link-hover-color-rgb: 20, 108, 67;
+}
+
+/* A soft green wash behind the whole app for a warmer feel. */
+body {
+  background-color: #f7faf8;
+}
+
+/* Make brand-primary buttons/links pick up the green focus ring. */
+.btn-success:focus-visible,
+.btn-outline-success:focus-visible {
+  box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.35);
+}
+
+/* Keep the hero text crisp and roomy on large screens. */
+.hero {
+  background-image: linear-gradient(135deg, #146c43 0%, #198754 60%, #20c997 100%);
+}
+
+/* Product cards lift subtly on hover. */
+.product-card {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Clamp long product descriptions to keep grid cards even. */
+.product-card .card-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Scrollable filter sidebar on tall catalogs. */
+@media (min-width: 992px) {
+  .filters-sticky {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+/* Dialogs (product detail + cart) get a dimmed, blurred backdrop. */
+.app-modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
